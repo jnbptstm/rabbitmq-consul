@@ -1,0 +1,42 @@
+version: "3.7"
+services:
+   rabbit:
+    environment:
+      - TCP_PORTS=15672, 5672
+      - RABBITMQ_ERLANG_COOKIE="mycookie"  
+    networks:
+      - back
+    image:  rabbitmq:3.8.0
+    ports: 
+      - "15672:15672"
+      - "5672:5672"
+    deploy:
+      mode: replicated
+      replicas: 2
+    configs:
+      - source: rabbitmq_conf
+        target: /etc/rabbitmq/rabbitmq.conf
+      - source: enabled_plugins
+        target: /etc/rabbitmq/enaled_plugins
+    command:  sh -c "sleep 10; rabbitmq-server;" 
+
+   consul:
+    image: "consul"
+    hostname: "consul"
+    deploy:
+      mode: global
+    ports:
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:53"
+    networks:
+      - back
+
+configs:
+  rabbitmq_conf:
+    file: ./conf/rabbitmq.conf
+  enabled_plugins:
+    file: ./conf/enabled_plugins
+      
+networks:
+  back:
