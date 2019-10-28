@@ -20,7 +20,8 @@ services:
         target: /etc/rabbitmq/rabbitmq.conf
       - source: enabled_plugins
         target: /etc/rabbitmq/enabled_plugins
-    command:  sh -c "sleep 10; rabbitmq-server;" 
+      - source: load_definitions
+        target: /etc/rabbitmq/definitions.json
 
    consul:
     image: "consul"
@@ -40,6 +41,8 @@ configs:
     file: ./conf/rabbitmq.conf
   enabled_plugins:
     file: ./conf/enabled_plugins
+  load_definitions:
+    file: ./conf/definitions.json
       
 networks:
   back:
