@@ -1,14 +1,199 @@
 {
-"vhosts":[
-		{"name":"/"}
-	],
-"users":[
-		{"name":"guest", "password":"guest", "tags":"administrator"}
-	],
-"permissions":[
-		{"user":"guest", "vhost":"/", "configure":".*", "write":".*", "read":".*"}
-	],
-"policies":[
-		{ "vhost":"/", "name":"ha", "pattern":"", "definition":{"ha-mode":"all", "ha-sync-mode":"automatic"} }
-	]
+    "rabbit_version": "3.8.0",
+    "users": [
+        {
+            "name": "admin",
+            "password_hash": "ANbVvJ/1C/OuYTV9vcjRzWJt9iiqkBanCCC9gKt67g+mHWx/",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": "administrator"
+        },
+        {
+            "name": "guest",
+            "password_hash": "Xo1TZcYLXjdg/pbyiM7EQDRyc06nW5rZeg0xf9b4cuk9/HOU",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": "monitoring"
+        },
+        {
+            "name": "rabbit",
+            "password": "karot",
+            "tags": "management"
+        }
+    ],
+    "vhosts": [
+        {
+            "name": "MQcluster_vhost"
+        }
+    ],
+    "permissions": [
+        {
+            "user": "guest",
+            "vhost": "MQcluster_vhost",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        }
+    ],
+    "policies": [
+        {
+            "vhost": "MQcluster_vhost",
+            "name": "MQcluster_policy",
+            "pattern": "",
+            "apply-to": "all",
+            "definition": {
+                "ha-mode": "all",
+                "ha-sync-mode": "automatic",
+                "queue-mode": "lazy"
+            }
+        }
+    ],
+    "exchanges": [
+        {
+            "name": "MQcluster_exchange_direct",
+            "vhost": "MQcluster_vhost",
+            "type": "direct",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_exchange_topic",
+            "vhost": "MQcluster_vhost",
+            "type": "topic",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_exchange_fanout",
+            "vhost": "MQcluster_vhost",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_exchange_headers",
+            "vhost": "MQcluster_vhost",
+            "type": "direct",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        }
+    ],
+    "queues": [
+        {
+            "name": "MQcluster_queue_direct",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_topic_first",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_topic_second",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_topic_firstandsecond",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_fanout1",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_fanout2",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_header",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        }
+    ],
+    "bindings": [
+        {
+            "source": "MQcluster_exchange_direct",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_direct",
+            "destination_type": "queue",
+            "routing_key": "MQcluster_routing_key_direct",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_topic",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_topic_first",
+            "destination_type": "queue",
+            "routing_key": "MQcluster_queue_topic.first",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_topic",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_topic_second",
+            "destination_type": "queue",
+            "routing_key": "MQcluster_queue_topic.second",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_topic",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_topic_firstandsecond",
+            "destination_type": "queue",
+            "routing_key": "MQcluster_queue_topic.#",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_fanout",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_fanout1",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_fanout",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_fanout2",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_headers",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_header",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {
+                "arg1": "val1",
+                "arg2": "val2"
+            }
+        }
+    ]
 }
