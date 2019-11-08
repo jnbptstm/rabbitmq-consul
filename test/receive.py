@@ -4,7 +4,7 @@ import pika
 
 # Establish connection with RabbitMQ server
 credentials = pika.PlainCredentials('guest', 'guest')
-connection = pika.BlockingConnection(pika.ConnectionParameters('docker6', 5672, 'MQcluster_vhost', credentials))
+connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost', port=5672, virtual_host='MQcluster_vhost', credentials=credentials))
 
 channel = connection.channel()
 

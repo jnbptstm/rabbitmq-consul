@@ -1,14 +1,225 @@
 RabbitMQ cluster with Consul peer discovery
 ===========================================
 
-Goals
------
-
 This project aims to deploy RabbitMQ micro-service in a cluster with High Availability (HA)
 
 The amount of RabbitMQ MS is defined in __docker-compose.yml__ file.
 
 Consul will allow RabbitMQ nodes to know each other.
+
+
+RabbitMQ concepts
+=================
+
+RabbitMQ is an application, also known as "message broker" or "queue manager", used to exchange data between services. It is widely used in micro-services architectures.
+
+Exchanges
+---------
+
+The job of an exchange is to accept messages from a producer application and route them to the correct message queues depending on messages' attributes (e.g. routing key, properties).
+Different types of exchange exist.
+
+### Direct
+Delivers message to queues which binding_key (routing_key defined in bindings) **exactly matches** message's routing_key.
+
+```json
+{
+    "exchanges": [
+        {
+            "name": "MQcluster_exchange_direct",
+            "vhost": "MQcluster_vhost",
+            "type": "direct",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        }
+    ],
+    "queues": [
+        {
+            "name": "MQcluster_queue_direct",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        }
+    ],
+    "bindings": [
+        {
+            "source": "MQcluster_exchange_direct",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_direct",
+            "destination_type": "queue",
+            "routing_key": "MQcluster_routing_key_direct",
+            "arguments": {}
+        }
+    ]
+}
+```
+
+### Topic
+Performs a **wildcard match** between message's routing_key and routing pattern specified in the binding.
+
+```json
+{
+    "exchanges":[
+        {
+            "name": "MQcluster_exchange_topic",
+            "vhost": "MQcluster_vhost",
+            "type": "topic",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+    ],
+    "queues":[
+        {
+            "name": "MQcluster_queue_topic_first",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_topic_second",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_topic_firstandsecond",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+    ],
+    "bindings":[
+         {
+            "source": "MQcluster_exchange_topic",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_topic_first",
+            "destination_type": "queue",
+            "routing_key": "MQcluster_queue_topic.first",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_topic",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_topic_second",
+            "destination_type": "queue",
+            "routing_key": "MQcluster_queue_topic.second",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_topic",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_topic_firstandsecond",
+            "destination_type": "queue",
+            "routing_key": "MQcluster_queue_topic.#",
+            "arguments": {}
+        }
+    ]
+}
+```
+
+### Fanout
+Routes messages to **all** of the queues that are bound to it.
+
+```json
+{
+    "exchanges":[
+        {
+            "name": "MQcluster_exchange_fanout",
+            "vhost": "MQcluster_vhost",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+    ],
+    "queues":[
+        {
+            "name": "MQcluster_queue_fanout1",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        },
+        {
+            "name": "MQcluster_queue_fanout2",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        }
+    ],
+    "bindings":[
+        {
+            "source": "MQcluster_exchange_fanout",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_fanout1",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {}
+        },
+        {
+            "source": "MQcluster_exchange_fanout",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_fanout2",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {}
+        },
+    ]
+}
+```
+
+### Header
+Uses the message's header attributes for routing purposes.
+
+```json
+{
+    "exchanges":[
+        {
+            "name": "MQcluster_exchange_headers",
+            "vhost": "MQcluster_vhost",
+            "type": "direct",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        }
+    ],
+    "queues":[
+        {
+            "name": "MQcluster_queue_header",
+            "vhost": "MQcluster_vhost",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {}
+        }
+    ],
+    "bindings":[
+        {
+            "source": "MQcluster_exchange_headers",
+            "vhost": "MQcluster_vhost",
+            "destination": "MQcluster_queue_header",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {
+                "arg1": "val1",
+                "arg2": "val2"
+            }
+        }
+    ]
+}
+```
+
+![alt text](docs/rabbitmq-exchanges.png)
 
 
 Configuration
@@ -44,7 +255,7 @@ Longer queues impose more processing.
 
 ### Send persistent messages to durable queues and exchanges
 To ensure that messages and brokers definitions survive restarts / crashes, ensure they are on disk.
-To do so, exchanges and queues should be declared as **durable** and messages should be sent with delivery mode **persistent** (-> see lazy mode)
+To do so, exchanges and queues should be declared as **durable** and messages should be sent with delivery mode **persistent**
 
 _Developers should set parameter **durable** to True in __definitions.json__ configuration file._
 ```json
@@ -72,6 +283,15 @@ _Developers should set parameter **durable** to True in __definitions.json__ con
 }
 ```
 
+_Developers should also send messages with parameter **delivery_mode=2**_:
+```java
+channel.basicPublish(exchangeName, routingKey,
+             new AMQP.BasicProperties.Builder()
+               .deliveryMode(2)
+               .userId("guest")
+               .build(),
+               "Hello world!".getBytes());
+```
 
 ### Enable lazy queues
 Lazy queues write messages to disk immediatly.
@@ -95,7 +315,7 @@ _Developers should enable **lazy mode** when sending messages in __definitions.j
 }
 ```
 
-_N.B_ : *"ha-mode":"all"* and *"ha-sync-mode":"automatic"* must be set to allow queue mirroring (~synchronizing) 
+_N.B_ : *"ha-mode":"all"* and *"ha-sync-mode":"automatic"* must be set to allow queue mirroring (~synchronizing ) 
 
 ### RabbitMQ HA - 2 nodes
 Two nodes are optimal for HA.
@@ -110,94 +330,6 @@ Setting the rate mode of RabbitMQ management statistics to 'detailed' has a seri
 
 ### Limited use of priority queues
 Each priority level uses an internal queue on the ERlang VM.
-
-
-
-RabbitMQ concepts
-=================
-
-RabbitMQ is an application used to exchange data between services, also known as "message broker" or "queue manager". It is widely used in micro-services architectures.
-
-Exchanges
----------
-
-The job of an exchange is to accept messages from a producer application and route them to the correct message queues depending on messages' attributes.
-Different types of exchange exist.
-
-### Direct
-Delivers message to queues which binding_key **exactly matches** message's routing_key
-```json
-{
-    "bindings": [
-        {
-            "source": "MQcluster_exchange_direct",
-            "vhost": "MQcluster_vhost",
-            "destination": "MQcluster_queue_direct",
-            "destination_type": "queue",
-            "routing_key": "MQcluster_routing_key_direct",
-            "arguments": {}
-        }
-    ]
-}
-```
-
-### Topic
-Performs a **wildcard match** between message's routing_key and routing pattern specified in the binding.
-```json
-{
-    "bindings":[
-        {
-            "source": "MQcluster_exchange_topic",
-            "vhost": "MQcluster_vhost",
-            "destination": "MQcluster_queue_topic_firstandsecond",
-            "destination_type": "queue",
-            "routing_key": "MQcluster_queue_topic.#",
-            "arguments": {}
-        }
-    ]
-}
-```
-
-### Fanout
-Routes messages to **all** of the queues that are bound to it.
-```json
-{
-    "bindings":[
-        {
-            "source": "MQcluster_exchange_fanout",
-            "vhost": "MQcluster_vhost",
-            "destination": "MQcluster_queue_fanout2",
-            "destination_type": "queue",
-            "routing_key": "",
-            "arguments": {}
-        }
-    ]
-}
-```
-
-### Header
-Uses the message's header attributes for routing purposes.
-```json
-{
-    "bindings":[
-        {
-            "source": "MQcluster_exchange_headers",
-            "vhost": "MQcluster_vhost",
-            "destination": "MQcluster_queue_header",
-            "destination_type": "queue",
-            "routing_key": "",
-            "arguments": {
-                "arg1": "val1",
-                "arg2": "val2"
-            }
-        }
-    ]
-}
-```
-
-
-![alt text](docs/rabbitmq-exchanges.png)
-
 
 
 Demonstration
@@ -220,4 +352,4 @@ Scenario 2
 2. Delete **all** RabbitMQ services
 3. Wait for services to restart
 
-=> All messages are lost. May use a volume to store messages on host disk
+=> All messages are lost. May use a volume to store messages on host disk ?
